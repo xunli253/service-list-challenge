@@ -1,6 +1,6 @@
 import "./App.css";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { withStyles, makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -8,7 +8,11 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Alert from '@material-ui/lab/Alert';
+import AlertTitle from '@material-ui/lab/AlertTitle';
+import TextField from '@material-ui/core/TextField'
+
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
@@ -28,36 +32,61 @@ const StyledTableRow = withStyles((theme) => ({
   },
 }))(TableRow);
 
-const useStyles = makeStyles({
-  table: {
-    minWidth: 700,
+const useStyles = makeStyles((theme) =>({
+  search:{
+    marginBottom:20,
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    width: 200,
+    height: 30
   },
-});
+  table: {
+    width: '80%',
+    justifyContent: 'center',
+    alignItems: 'center', 
+  },
+  tableContainer: {
+    display: 'flex',
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  },
+}));
 
 const App = () => {
   const classes = useStyles();
   const [product, setProduct] = useState([]);
   const [search, setSearch] = useState("");
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   const getProductData = async () => {
     try {
+      setLoading(true);
       const data = await axios.get(
-        "http://makeup-api.herokuapp.com/api/v1/products.json?brand=maybelline"
+        process.env.REACT_APP_API_URL || 'https://boards.api.huddo.com/v'
       );
-      console.log(data.data);
       setProduct(data.data);
+      setLoading(false);
     } catch (e) {
-      console.log(e);
+      setError('Failed to fetch data');
+      setLoading(false);
     }
   };
+
+  const filteredProducts = useMemo(() => {
+    return product.filter((item) => {
+      return search === "" || item.name.toLowerCase().includes(search.toLowerCase());
+    });
+  }, [product, search]);
 
   useEffect(() => {
     getProductData();
   }, []);
   return (
     <div className="App">
-      <h1>Lets code tamil</h1>
-      <input
+      <h1>Huddo Boards Services List</h1>
+      <TextField
+        className={classes.search}
         type="text"
         placeholder="Search here"
         onChange={(e) => {
@@ -65,53 +94,45 @@ const App = () => {
         }}
       />
 
-      {/* {product
-        .filter((item) => {
-          if (search == "") {
-            return item;
-          } else if (item.name.toLowerCase().includes(search.toLowerCase())) {
-            return item;
-          }
-        })
-        .map((item) => {
-          return (
-            <p>
-              {item.name} - {item.price}
-            </p>
-          );
-        })} */}
-
-      <TableContainer component={Paper}>
+      <TableContainer className={classes.tableContainer}>
         <Table className={classes.table} aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell>Product Name</StyledTableCell>
-              <StyledTableCell align="right">Product Price</StyledTableCell>
+              <StyledTableCell>Service Name</StyledTableCell>
+              <StyledTableCell align="right">Service Version</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {product
-              .filter((item) => {
-                if (search == "") {
-                  return item;
-                } else if (
-                  item.name.toLowerCase().includes(search.toLowerCase())
-                ) {
-                  return item;
-                }
-              })
-              .map((item) => {
+            {error && 
+               <StyledTableRow>
+               <StyledTableCell colSpan={2}>
+                 <Alert severity="error">
+                   <AlertTitle>Error</AlertTitle>
+                   {error} — <strong>check it out!</strong>
+                 </Alert>
+               </StyledTableCell>
+             </StyledTableRow>
+            }
+               
+          {loading ? (
+           <StyledTableRow>
+              <StyledTableCell colSpan={2} style={{ textAlign: 'center' }}>
+                <CircularProgress />
+              </StyledTableCell>
+          </StyledTableRow>
+  ) :  (filteredProducts.map((item) => {
                 return (
-                  <StyledTableRow key={item.id}>
+                  <StyledTableRow key={item.name}>
                     <StyledTableCell component="th" scope="row">
                       {item.name}
                     </StyledTableCell>
                     <StyledTableCell align="right">
-                      {item.price}
+                      {item.version}
                     </StyledTableCell>
                   </StyledTableRow>
                 );
-              })}
+              })
+              )}
           </TableBody>
         </Table>
       </TableContainer>
