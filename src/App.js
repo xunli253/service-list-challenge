@@ -1,56 +1,17 @@
 import "./App.css";
 import axios from "axios";
 import { useEffect, useState, useMemo } from "react";
-import { withStyles, makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
-import TextField from '@material-ui/core/TextField'
+import TextField from '@material-ui/core/TextField';
+import { StyledTableCell, StyledTableRow, useStyles} from './style'
 
-
-const StyledTableCell = withStyles((theme) => ({
-  head: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
-  },
-  body: {
-    fontSize: 14,
-  },
-}))(TableCell);
-
-const StyledTableRow = withStyles((theme) => ({
-  root: {
-    "&:nth-of-type(odd)": {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-}))(TableRow);
-
-const useStyles = makeStyles((theme) =>({
-  search:{
-    marginBottom:20,
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    width: 200,
-    height: 30
-  },
-  table: {
-    width: '80%',
-    justifyContent: 'center',
-    alignItems: 'center', 
-  },
-  tableContainer: {
-    display: 'flex',
-    justifyContent: 'center', 
-    alignItems: 'center', 
-  },
-}));
 
 const App = () => {
   const classes = useStyles();
@@ -58,12 +19,12 @@ const App = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+  const API_URL = 'https://boards.api.huddo.com/v'
   const getProductData = async () => {
     try {
       setLoading(true);
       const data = await axios.get(
-        process.env.REACT_APP_API_URL || 'https://boards.api.huddo.com/v'
+        API_URL
       );
       setProduct(data.data);
       setLoading(false);
@@ -116,7 +77,7 @@ const App = () => {
                
           {loading ? (
            <StyledTableRow>
-              <StyledTableCell colSpan={2} style={{ textAlign: 'center' }}>
+              <StyledTableCell colSpan={2} className={classes.loading}>
                 <CircularProgress />
               </StyledTableCell>
           </StyledTableRow>
